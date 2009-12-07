@@ -1,0 +1,55 @@
+AkPropelBehaviorSelectIterator
+==============================
+
+タスク等で大量のレコードに対して処理をする際、メモリアロケーションエラー防止の為に↓みたいに書いていたのが
+
+<?php
+$stmt = AuthorPeer::doSelectStmt(new Criteria());
+while($row = $stmt->fetch(PDO::FETCH_NUM)) {
+    $a = new Author();
+    $a->hydrate($row);
+
+    // ...
+}
+
+こう書けるようになります。
+
+<?php
+$it = AuthorPeer::doSelectIterator(new Criteria());
+foreach ($it as $a) {
+    // ...
+}
+
+
+Example
+=======
+
+propel.yml
+
+; behaviors
+
+; 全てのデータベースに対して適用させたい場合はここにselect_iteratorを追加
+propel.behavior.default                        = symfony,symfony_i18n,select_iterator
+
+propel.behavior.select_iterator.class          = lib.behavior.AkPropelBehaviorSelectIterator
+
+
+schema.yml
+
+connection:           propel
+package:              lib.model
+
+# DB単位で指定 （うまく動いていない気がする）
+propel_behaviors:
+  select_iterator: {}
+
+classes:
+  User:
+    tableName:        user
+    columns:
+      first_name:     { type: varchar, size: 255, default: "Anonymous", primaryString: true }
+      last_name:      varchar(50)
+      created_at:     { type: timestamp, default: '0000-00-00 00:00:00', required: true, index: true }
+    # テーブル単位で指定
+    propel_behaviors:
+      select_iterator: {}
