@@ -21,6 +21,17 @@ foreach ($it as $a) {
 }
 
 
+AkPropelBehaviorInnodbCount
+==============================
+
+デフォルト
+SELECT COUNT(*) FROM `article`
+
+propel behavior 設定後
+SELECT COUNT(article.CREATED_AT) FROM `article`
+
+
+
 Example
 =======
 
@@ -32,6 +43,7 @@ propel.yml
 propel.behavior.default                        = symfony,symfony_i18n,select_iterator
 
 propel.behavior.select_iterator.class          = lib.behavior.AkPropelBehaviorSelectIterator
+propel.behavior.innodb_count.class             = lib.behavior.AkPropelBehaviorInnodbCount
 
 
 schema.yml
@@ -53,3 +65,18 @@ classes:
     # テーブル単位で指定
     propel_behaviors:
       select_iterator: {}
+
+  Article:
+    tableName:        article
+    columns:
+      title:          varchar(50)
+      user_id:        { type: integer }
+      created_at:     { type: timestamp, default: '0000-00-00 00:00:00', required: true, index: true }
+    foreignKeys:
+      -
+        foreignTable: user
+        onDelete:     cascade
+        references:
+          - { local: user_id, foreign: id }
+    propel_behaviors:
+      innodb_count: { column: created_at }
